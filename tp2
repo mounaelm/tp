@@ -1,0 +1,208 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Date {
+    char jour[3];
+    char mois[3];
+    char annee[5];
+} date;
+
+typedef struct Produit {
+    char *Nom_produit;
+    char Reference[100];
+    float Montant;
+    date DateAchat;
+} produit;
+
+typedef struct Liste {
+    produit cellule;
+    struct Liste *psuiv;
+} liste;
+
+liste *creer_liste_produits() {
+    return NULL;
+}
+
+int est_vide(liste *tete) {
+    return (tete == NULL);
+}
+
+liste *creer_produit() {
+    liste *newNode = (liste *)malloc(sizeof(liste));
+    if (!newNode) {
+        printf("Erreur\n");
+        return NULL;
+    }
+    newNode->cellule.Nom_produit = (char *)malloc(100 * sizeof(char));
+    printf("Nom du produit : ");
+    scanf("%s", newNode->cellule.Nom_produit);
+    printf("Référence : ");
+    scanf("%s", newNode->cellule.Reference);
+    printf("Montant : ");
+    scanf("%f", &newNode->cellule.Montant);
+    printf("Date (JJ MM AAAA) : ");
+    scanf("%s %s %s", newNode->cellule.DateAchat.jour, newNode->cellule.DateAchat.mois, newNode->cellule.DateAchat.annee);
+    newNode->psuiv = NULL;
+    return newNode;
+}
+
+void afficher_produit(liste *produit) {
+    if (produit == NULL) {
+        printf("Produit inexistant.\n");
+    } else {
+        printf("Nom: %s, Référence: %s, Montant: %.2f, Date: %s/%s/%s\n",
+               produit->cellule.Nom_produit, produit->cellule.Reference,
+               produit->cellule.Montant, produit->cellule.DateAchat.jour,
+               produit->cellule.DateAchat.mois, produit->cellule.DateAchat.annee);
+    }
+}
+
+liste *ajouter_debut(liste *tete) {
+    liste *newProduit = creer_produit();
+    if (newProduit) {
+        newProduit->psuiv = tete;
+    }
+    return newProduit;
+}
+
+void ajouter_fin(liste *tete) {
+    liste *newProduit = creer_produit();
+    if (tete == NULL) {
+        tete = newProduit;
+    } else {
+        liste *temp = tete;
+        while (temp->psuiv != NULL) {
+            temp = temp->psuiv;
+        }
+        temp->psuiv = newProduit;
+    }
+}
+
+void afficher_produits(liste *tete) {
+    if (est_vide(tete)) {
+        printf("Liste vide.\n");
+    } else {
+        liste *temp = tete;
+        while (temp != NULL) {
+            afficher_produit(temp);
+            temp = temp->psuiv;
+        }
+    }
+}
+
+int longueur(liste *tete) {
+    int count = 0;
+    while (tete != NULL) {
+        count++;
+        tete = tete->psuiv;
+    }
+    return count;
+}
+
+void filter_date(liste *tete, date dt) {
+    liste *temp = tete;
+    while (temp != NULL) {
+        if (strcmp(temp->cellule.DateAchat.jour, dt.jour) == 0 &&
+            strcmp(temp->cellule.DateAchat.mois, dt.mois) == 0 &&
+            strcmp(temp->cellule.DateAchat.annee, dt.annee) == 0) {
+            afficher_produit(temp);
+        }
+        temp = temp->psuiv;
+    }
+}
+
+liste *supprimer_debut(liste *tete) {
+    if (est_vide(tete)) return NULL;
+    liste *temp = tete;
+    tete = tete->psuiv;
+    free(temp);
+    return tete;
+}
+
+void supprimer_fin(liste *tete) {
+    if (est_vide(tete)) {
+        printf("Liste vide.\n");
+        return;
+    }
+    if (tete->psuiv == NULL) {
+        free(tete);
+        tete = NULL;
+    } else {
+        liste *temp = tete;
+        liste *prev = NULL;
+        while (temp->psuiv != NULL) {
+            prev = temp;
+            temp = temp->psuiv;
+        }
+        prev->psuiv = NULL;
+        free(temp);
+    }
+}
+
+liste *rembourser(liste *tete, char *refer) {
+    if (est_vide(tete)) return NULL;
+    if (strcmp(tete->cellule.Reference, refer) == 0) {
+        return supprimer_debut(tete);
+    }
+    liste *temp = tete;
+    liste *prev = NULL;
+    while (temp != NULL && strcmp(temp->cellule.Reference, refer) != 0) {
+        prev = temp;
+        temp = temp->psuiv;
+    }
+    if (temp == NULL) {
+        printf("Produit non trouvé.\n");
+        return tete;
+    }
+    if (temp->psuiv == NULL) {
+        supprimer_fin(tete);
+    } else {
+        prev->psuiv = temp->psuiv;
+        free(temp);
+    }
+    return tete;
+}
+
+int main() {
+    liste *stock = creer_liste_produits();
+    int choix;
+    char refer[100];
+    date dt;
+
+    do {
+        printf("\nMenu :\n");
+        printf("1. Ajouter au début\n");
+        printf("2. Ajouter à la fin\n");
+        printf("3. Afficher tous\n");
+        printf("4. Supprimer premier\n");
+        printf("5. Supprimer dernier\n");
+        printf("6. Supprimer par référence\n");
+        printf("7. Filtrer par date\n");
+        printf("8. Quitter\n");
+        printf("Choix : ");
+        scanf("%d", &choix);
+
+        switch (choix) {
+            case 1: stock = ajouter_debut(stock); break;
+            case 2: ajouter_fin(stock); break;
+            case 3: afficher_produits(stock); break;
+            case 4: stock = supprimer_debut(stock); break;
+            case 5: supprimer_fin(stock); break;
+            case 6:
+                printf("Référence : ");
+                scanf("%s", refer);
+                stock = rembourser(stock, refer);
+                break;
+            case 7:
+                printf("Date (JJ MM AAAA) : ");
+                scanf("%s %s %s", dt.jour, dt.mois, dt.annee);
+                filter_date(stock, dt);
+                break;
+            case 8: printf("Fin.\n"); break;
+            default: printf("Erreur.\n");
+        }
+    } while (choix != 8);
+
+    return 0;
+}
