@@ -1,41 +1,288 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<CodeBlocks_project_file>
-	<FileVersion major="1" minor="6" />
-	<Project>
-		<Option title="tp2" />
-		<Option pch_mode="2" />
-		<Option compiler="gcc" />
-		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/tp2" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
-			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/tp2" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O2" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-		</Build>
-		<Compiler>
-			<Add option="-Wall" />
-		</Compiler>
-		<Unit filename="main.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Extensions>
-			<lib_finder disable_auto="1" />
-		</Extensions>
-	</Project>
-</CodeBlocks_project_file>
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Noeud {
+    int valeur;
+    struct Noeud *suivant;
+    struct Noeud *precedent;
+} Noeud;
+
+Noeud *cree(int val) {
+    Noeud *NV = (Noeud *)malloc(sizeof(Noeud));
+    NV->precedent = NULL;
+    NV->suivant = NULL;
+    NV->valeur = val;
+    return NV;
+}
+
+void afficher(Noeud *debut) {
+    Noeud *tmp = debut;
+    while (tmp != NULL) {
+        printf("%d ", tmp->valeur);
+        tmp = tmp->suivant;
+    }
+    printf("\n");
+}
+
+Noeud *afficherIN(Noeud *debut) {
+    if (debut == NULL) return NULL;
+    Noeud *tmp = debut;
+    while (tmp->suivant != NULL) {
+        tmp = tmp->suivant;
+    }
+    while (tmp != NULL) {
+        printf("%d ", tmp->valeur);
+        tmp = tmp->precedent;
+    }
+    printf("\n");
+    return tmp;
+}
+
+void ajouterD(Noeud **debut, int val) {
+    Noeud *NV = cree(val);
+    NV->suivant = *debut;
+    if (*debut != NULL) {
+        (*debut)->precedent = NV;
+    }
+    *debut = NV;
+}
+
+Noeud *ajouterF(Noeud *debut, int val) {
+    Noeud *NV = cree(val);
+    if (debut == NULL) {
+        debut = NV;
+    } else {
+        Noeud *tmp = debut;
+        while (tmp->suivant != NULL) {
+            tmp = tmp->suivant;
+        }
+        tmp->suivant = NV;
+        NV->precedent = tmp;
+    }
+    return debut;
+}
+
+int taille(Noeud *debut) {
+    int cpt = 0;
+    Noeud *tmp = debut;
+    while (tmp != NULL) {
+        cpt++;
+        tmp = tmp->suivant;
+    }
+    return cpt;
+}
+
+Noeud *insertion(Noeud *debut, int val, int pos) {
+    if (pos < 1 || pos > taille(debut) + 1) {
+        printf("Erreur position.\n");
+        return debut;
+    }
+    Noeud *NV = cree(val);
+    if (pos == 1) {
+        NV->suivant = debut;
+        if (debut != NULL) {
+            debut->precedent = NV;
+        }
+        debut = NV;
+    } else {
+        Noeud *ptr = debut;
+        int c = 1;
+        while (ptr != NULL && c != pos - 1) {
+            c++;
+            ptr = ptr->suivant;
+        }
+        NV->suivant = ptr->suivant;
+        if (ptr->suivant != NULL) {
+            ptr->suivant->precedent = NV;
+        }
+        NV->precedent = ptr;
+        ptr->suivant = NV;
+    }
+    return debut;
+}
+
+Noeud *rechercher(Noeud *debut, int val) {
+    Noeud *ptr = debut;
+    while (ptr != NULL) {
+        if (ptr->valeur == val) {
+            return ptr;
+        }
+        ptr = ptr->suivant;
+    }
+    return NULL;
+}
+
+Noeud *supprimerD(Noeud *debut) {
+    if (debut == NULL) {
+        printf("Liste vide.\n");
+        return debut;
+    }
+    Noeud *ptr = debut;
+    debut = debut->suivant;
+    if (debut != NULL) {
+        debut->precedent = NULL;
+    }
+    free(ptr);
+    return debut;
+}
+
+Noeud *supprimerF(Noeud *debut) {
+    if (debut == NULL) {
+        printf("Liste vide.\n");
+        return debut;
+    }
+    Noeud *ptr = debut;
+    while (ptr->suivant != NULL) {
+        ptr = ptr->suivant;
+    }
+    if (ptr->precedent != NULL) {
+        ptr->precedent->suivant = NULL;
+    } else {
+        debut = NULL;
+    }
+    free(ptr);
+    return debut;
+}
+
+Noeud *supprimerP(Noeud *debut, int pos) {
+    if (pos < 1 || pos > taille(debut)) {
+        printf("Erreur position.\n");
+        return debut;
+    }
+    Noeud *tmp = debut;
+    for (int i = 1; i < pos; i++) {
+        tmp = tmp->suivant;
+    }
+    if (tmp->precedent != NULL) {
+        tmp->precedent->suivant = tmp->suivant;
+    } else {
+        debut = tmp->suivant;
+    }
+    if (tmp->suivant != NULL) {
+        tmp->suivant->precedent = tmp->precedent;
+    }
+    free(tmp);
+    return debut;
+}
+
+Noeud *modifierD(Noeud *debut, int val) {
+    if (debut != NULL) {
+        debut->valeur = val;
+    }
+    return debut;
+}
+
+Noeud *modifierF(Noeud *debut, int val) {
+    if (debut == NULL) {
+        return NULL;
+    }
+    Noeud *tmp = debut;
+    while (tmp->suivant != NULL) {
+        tmp = tmp->suivant;
+    }
+    tmp->valeur = val;
+    return debut;
+}
+
+Noeud *modifierP(Noeud *debut, int pos, int val) {
+    if (pos < 1 || pos > taille(debut)) {
+        printf("Erreur position.\n");
+        return debut;
+    }
+    Noeud *tmp = debut;
+    for (int i = 1; i < pos; i++) {
+        tmp = tmp->suivant;
+    }
+    tmp->valeur = val;
+    return debut;
+}
+
+Noeud *triSelection(Noeud *debut) {
+    if (debut == NULL || debut->suivant == NULL) {
+        return debut;
+    }
+    Noeud *temp1 = debut;
+    while (temp1 != NULL) {
+        Noeud *min = temp1;
+        Noeud *temp2 = temp1->suivant;
+        while (temp2 != NULL) {
+            if (temp2->valeur < min->valeur) {
+                min = temp2;
+            }
+            temp2 = temp2->suivant;
+        }
+        if (min != temp1) {
+            int temp = temp1->valeur;
+            temp1->valeur = min->valeur;
+            min->valeur = temp;
+        }
+        temp1 = temp1->suivant;
+    }
+    return debut;
+}
+
+int main() {
+    Noeud *debut = NULL;
+    Noeud *P = cree(10);
+    Noeud *D = cree(20);
+    Noeud *F = cree(30);
+    debut = P;
+    P->suivant = D;
+    D->precedent = P;
+    D->suivant = F;
+    F->precedent = D;
+
+    printf("Initial : ");
+    afficher(debut);
+
+    printf("Inverse : ");
+    afficherIN(debut);
+
+    ajouterD(&debut, 40);
+    printf("Ajout début 40 : ");
+    afficher(debut);
+
+    debut = ajouterF(debut, 400);
+    printf("Ajout fin 400 : ");
+    afficher(debut);
+
+    debut = insertion(debut, 2400, 2);
+    printf("Insertion 2400 pos 2 : ");
+    afficher(debut);
+
+    if (rechercher(debut, 1000)) {
+        printf("1000 trouvé.\n");
+    } else {
+        printf("1000 non trouvé.\n");
+    }
+
+    debut = modifierD(debut, 35);
+    printf("Modif début 35 : ");
+    afficher(debut);
+
+    debut = modifierF(debut, 20);
+    printf("Modif fin 20 : ");
+    afficher(debut);
+
+    debut = modifierP(debut, 2, 100);
+    printf("Modif pos 2 100 : ");
+    afficher(debut);
+
+    debut = supprimerD(debut);
+    printf("Suppr début : ");
+    afficher(debut);
+
+    debut = supprimerF(debut);
+    printf("Suppr fin : ");
+    afficher(debut);
+
+    debut = supprimerP(debut, 4);
+    printf("Suppr pos 4 : ");
+    afficher(debut);
+
+    debut = triSelection(debut);
+    printf("Tri : ");
+    afficher(debut);
+
+    return 0;
+}
