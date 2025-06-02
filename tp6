@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node *next;
+} Node;
+
+Node *front = NULL;
+Node *rear = NULL;
+
+void Enfiler(int value) {
+    Node *newNode = (Node *)malloc(sizeof(Node));
+    if (newNode == NULL) {
+        printf("Erreur.\n");
+        return;
+    }
+    newNode->data = value;
+    newNode->next = NULL;
+    if (rear == NULL) {
+        front = rear = newNode;
+    } else {
+        rear->next = newNode;
+        rear = newNode;
+    }
+    printf("%d ajouté.\n", value);
+}
+
+void Defiler() {
+    if (front == NULL) {
+        printf("File vide.\n");
+        return;
+    }
+    Node *temp = front;
+    front = front->next;
+    if (front == NULL) {
+        rear = NULL;
+    }
+    printf("%d retiré.\n", temp->data);
+    free(temp);
+}
+
+void display() {
+    if (front == NULL) {
+        printf("File vide.\n");
+        return;
+    }
+    Node *current = front;
+    printf("File : ");
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+void viderfile() {
+    Node *temp;
+    while (front != NULL) {
+        temp = front;
+        front = front->next;
+        free(temp);
+    }
+    rear = NULL;
+    printf("File vidée.\n");
+}
+
+int main() {
+    Enfiler(10);
+    Enfiler(20);
+    Enfiler(30);
+    display();
+    viderfile();
+    display();
+    return 0;
+}
